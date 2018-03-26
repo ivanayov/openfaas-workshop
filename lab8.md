@@ -1,79 +1,94 @@
-Tuning auto-scaling
+# Lab 8 - Taking benefit from auto-scaling
 
-Auto-scaling starts at 1 replica and steps up in blocks of 5:
+OpenFaaS supports auto-scaling. It starts at 1 replica and steps up in blocks of 5:
 
 1->5
 5->10
 10->15
-15->20
-You can override the minimum and maximum scale of a function through labels.
 
-Add these labels to the deployment if you want to sacle between 2 and 15 replicas.
+You can override the minimum and maximum scale of a function through labels. F.e.
 
-com.openfaas.scale.min: "2"
-com.openfaas.scale.max: "15"
-The labels are optional.
+```yml
+    labels:
+      com.openfaas.scale.min: 5
+      com.openfaas.scale.max: 15
+```
 
-Disabling auto-scaling
+You can disable auto-scaling by setting `com.openfaas.scale.min` and `com.openfaas.scale.max` to 1.
 
-If you want to disable auto-scaling for a function then set the minimum and maximum scale to the same value i.e. "1".
+Let's try an example with a memory intensive function.
 
-As an alternative you can also remove AlertManager or scale it to 0 replicas.
+Create the function with 
 
+```
+faas new --lang python3 --prefix <your-docker-username> range-array
+```
 
-----------
+Now edit `range-array/handler.py` with the following code:
 
+```python
+import random
 
-Automatically compatible OpenFaaS
+def handle(req):
+    d = {}
+    i = 0;
+    for i in range(0, 100000000):
+        d[i] = 'B'*1024
 
-The following are fully compatible with any additional back-ends:
+    print("Done")
+```
 
-API Gateway
-Promethes metrics (tracked through API Gateway)
-The built-in UI portal (hosted on the API Gateway)
-The Function Watchdog and any existing OpenFaaS functions
-The CLI
-Asynchronous function invocation
-Dependent on back-end:
+Open `range-array.yml` and disable auto-scaling:
 
-Secrets or environmental variable support
-Windows Containers function runtimes (i.e. via W2016 and Docker)
-Scaling - dependent on underlying API (available in Docker & Kubernetes)
+```yml
+    labels:
+      com.openfaas.scale.min: 5
+      com.openfaas.scale.max: 15
+```
 
+Invoke the function with 
 
+```bash
+$ for i in {1..1000}; do curl -X POST http://127.0.0.1:8080/function/range-array -d '' & done
+```
 
-------------------
+Open another terminal with the docker status log:
 
+```
+$ docker stats
+CONTAINER ID        NAME                                            CPU %               MEM USAGE / LIMIT     MEM %               NET I/O             BLOCK I/O           PIDS
+adbd9d469494        range-array.1.nres1lqyfy3eyevknhp10gxqe         45.62%              1.193GiB / 1.952GiB   61.14%              245kB / 50.7kB      14.2MB / 54.1MB     168
 
-Sample function: Node OS Info (nodeinfo)
+CONTAINER ID        NAME                                            CPU %               MEM USAGE / LIMIT     MEM %               NET I/O             BLOCK I/O           PIDS
+adbd9d469494        range-array.1.nres1lqyfy3eyevknhp10gxqe         96.47%              1.265GiB / 1.952GiB   64.79%              273kB / 50.9kB      15.8MB / 85.9MB     167
+```
 
-Grab OS, CPU and other info via a Node.js container using the os module.
+You can notice that there is a single container for range-array with high CPU and memory usage.
 
-If you invoke this method in a while loop or with a load-generator tool then it will auto-scale to 5, 10, 15 and finally 20 replicas due to the load. You will then be able to see the various Docker containers responding with a different Hostname for each request as the work is distributed evenly.
+Now update `range-array.yml` and change the auto-scaling lables:
 
-Here is a loop that can be used to invoke the function in a loop to trigger auto-scaling.
+```yml
+    labels:
+      com.openfaas.scale.min: 5
+      com.openfaas.scale.max: 15
+```
 
-while [ true ] ; do curl -X POST http://127.0.0.1:8080/function/func_nodeinfo -d ''; done
-Example:
+Try the same test:
 
-# curl -X POST http://127.0.0.1:8080/function/func_nodeinfo -d ''
+```bash
+for i in {1..1000}; do curl -X POST http://127.0.0.1:8080/function/range-array -d '' & done
+```
 
-Hostname: 9b077a81a489
+You can now notice that the function is executed in 5 different containers with better results for memory and CPU usage:
 
-Platform: linux
-Arch: arm
-CPU count: 1
-Uptime: 776839
-To control scaling behaviour you can set a min/max scale value with a label when deploying your function via the CLI or the API:
+```
+$ docker stats
+CONTAINER ID        NAME                                            CPU %               MEM USAGE / LIMIT     MEM %               NET I/O             BLOCK I/O           PIDS
+fcbce2b8d6f3        range-array.2.snrz143bnupjewj1l46944cd4         0.00%               1.32MiB / 1.952GiB    0.07%               648B / 0B           3.48MB / 0B         5
+37a56064732f        range-array.3.krar6c1pu1shkyvywzvi5c13g         1.95%               1.191MiB / 1.952GiB   0.06%               648B / 0B           0B / 0B             5
+3cc7cfa5189d        range-array.5.d2l1tlumleok2p7fehr4s4xa5         1.92%               1.242MiB / 1.952GiB   0.06%               648B / 0B           0B / 0B             5
+cdc72d2111fa        range-array.1.5fd7d3tlshi7qrdjh1vo2vt47         2.08%               1.102MiB / 1.952GiB   0.06%               578B / 0B           0B / 0B             4
+0ee9b4ad5aa8        range-array.4.7mavzfo9j83l0icc71ndcw7xm         2.37%               1.125MiB / 1.952GiB   0.06%               578B / 0B           0B / 0B             5
+```
 
-  labels:
-    "com.openfaas.scale.min": "5"
-    "com.openfaas.scale.max": "15"
-
-
---------------
-
-Your API Gateway will scale functions according to demand by altering the service replica count in the Docker Swarm or Kubernetes API
-
-
-!!!! Grafana
+Now return to the [main page](./README.md).
