@@ -35,6 +35,9 @@ Let's try it out with a querystring and a function that lists off all environmen
 $ faas-cli deploy --name env --fprocess="env" --image="functions/alpine:latest" --network=func_functions
 ```
 
+TODO: Should we better resolve this?
+> Note: If you're running on Kubernetes, add the gateway flag to both `faas-cli deploy` and `faas-cli invoke`: `--gateway $OPENFAAS_URL`
+
 * Invoke the function with a querystring:
 
 ```
@@ -232,6 +235,11 @@ The following code can be used to call the *Sentiment Analysis* function or any 
     test_sentence = "California is great, it's always sunny there."
     r = requests.get("http://gateway:8080/function/sentimentanalysis", text= test_sentence)
 ```
+
+> Note: If you're running on Kubernetes, suffix the gateway host with `openfaas` namespace:
+> ```python
+>    r = requests.get("http://gateway.openfaas:8080/function/sentimentanalysis", text= test_sentence)
+> ```
 
 Or via an environmental variable:
 

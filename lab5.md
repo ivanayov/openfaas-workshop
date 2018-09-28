@@ -34,6 +34,13 @@ $ docker run -p 4040:4040 -d --name=ngrok --net=func_functions \
   alexellis2/ngrok-admin http gateway:8080
 ```
 
+> Note: If you're running on Kubernetes, use this command instead:
+>
+> TODO: figure out the right syntax
+> ```
+> kubectl run  --port=4040 -n openfaas_fn alexellis2/ngrok-admin hgateway.openfaas:8080 ngrok &
+> ```
+
 Use the built-in UI of `ngrok` at http://127.0.0.1:4040 to find your HTTP URL. You will be given a URL that you can access over the Internet, it will connect directly to your OpenFaaS API Gateway.
 
 > Note: `ngrok` also provides a JSON API at `http://127.0.0.1:4040/api/tunnels`
@@ -239,6 +246,11 @@ functions:
     environment_file:
     - env.yml
 ```
+
+> Note: If you're running on Kubernetes, suffix the `gateway_hostname` with `openfaas` namespace:
+> ```
+> gateway_hostname: "gateway.openfaas"
+> ```
 
 > The `positive_threshold` environmental variable is used to fine-tune whether an Issue gets the `positive` or `review` label.
 

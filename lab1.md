@@ -50,6 +50,29 @@ You can follow the labs whilst using Kubernetes, but you may need to make some s
 
 If using a `NodePort` then the gateway address for the OpenFaaS CLI is normally http://IP_ADDRESS:31112/
 
+++++++++ TODOs: ++++++++
+
+* Minikube
+1. Install Minikube - link or instructions
+2. Install Helm - link or instructions
+```
+$ minikube start
+```
+If problems:
+```
+$ minikube stop && minikube delete
+```
+
+```
+helm init
+```
+
+* Docker for Mac
+
+* GKE
+
+++++++++++++++++++++++++
+
 ### Docker Hub
 
 Sign up for a Docker Hub account. The [Docker Hub](https://hub.docker.com) allows you to publish your Docker images on the Internet for use on multi-node clusters or to share with the wider community. We will be using the Docker Hub to publish our functions during the workshop.
@@ -109,6 +132,19 @@ $ cd faas && \
   git checkout master
 ```
 
+
+> Note: For Kubernetes use `faas-netes` insead:
+>```
+> $ git clone https://github.com/openfaas/faas-netes
+> $ kubectl apply -f https://raw.githubusercontent.com/openfaas/faas-netes/master/namespaces.yml
+> $ cd faas-netes && \
+> kubectl apply -f ./yaml
+> ```
+> Now set the `OPENFAAS_URL` variable to link to the proper IP (TODO: list the different options for Minikube, Docker for Mac and GKE)
+> ```bash
+> export OPENFAAS_URL=http://$(minikube ip):31112
+> ```
+
 > Note: you can see the latest releases on the [project release page](https://github.com/openfaas/faas/releases).
 
 * Now deploy the stack with Docker Swarm:
@@ -124,6 +160,17 @@ Check the services show `1/1` on this screen:
 ```
 $ docker service ls
 ```
+
+> Note: For Kubernetes use:
+> ```
+> $ kubectl get pods -n openfaas
+> NAME                            READY     STATUS    RESTARTS   AGE
+> alertmanager-f5b4dfb8b-ztbb7    1/1       Running   0          1h
+> gateway-d8477b4b6-m962x         2/2       Running   0          1h
+> nats-86955fb749-8w65j           1/1       Running   0          1h
+> prometheus-7d78d54b57-nncss     1/1       Running   0          1h
+> queue-worker-8698f5bb78-qfv6n   1/1       Running   0          1h
+> ```
 
 If you run into any problems, please consult the [Deployment guide](https://github.com/openfaas/faas/blob/master/guide/deployment_swarm.md) for Docker Swarm.
 

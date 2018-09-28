@@ -30,6 +30,12 @@ You can control the maximum amount of replicas that can spawn for a function by 
 
 Open Prometheus in a web-browser: `http://127.0.0.1:9090/graph`
 
+> Note: If you're running on Kubernetes, you will need to run this port-forwarding command in order to be able to access Prometheus on `http://127.0.0.1:9090`:
+> ```
+> $ POD=$(kubectl get pods -n openfaas -l app=prometheus -o jsonpath="{.items[0].metadata['name']}")
+> $ kubectl -n openfaas port-forward $POD 9090:9090
+```
+
 Now add a graph with all successful invocation of the deployed functions. We can do this by executing `rate( gateway_function_invocation_total{code="200"} [20s])` as a query. Resulting in a page that looks like this:
 
  ![](./screenshot/prometheus_graph.png)
@@ -53,6 +59,8 @@ Use this script to invoke the `nodeinfo` function over and over until you see th
  ```bash
 $ while [ true ]; do curl -X POST http://127.0.0.1:8080/function/nodeinfo; done;
  ```
+
+> Note: If you're running on Kubernetes, use `$OPENFAAS_URL` instead of `http://127.0.0.1:8080`
 
 ### Monitor for alerts
 

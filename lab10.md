@@ -33,6 +33,15 @@ Test that the secret was created:
 ```
 $ docker secret inspect auth-token
 ```
+> Note: If you're running on Kubernetes, use this command for creating a secret instead:
+> ```
+> kubectl create secret generic auth-token --from-literal=auth-token=<auth-token> --namespace openfaas-fn
+> ```
+> And for inspecting the secret:
+> ```
+> kubectl get secret auth-token -n openfaas-fn -o json
+> ```
+
 > Note: If you are deploying your function on a remote gateway make sure you create your secret on the virtual machine you use for the gateway.
 
 When the secret is mounted by a function it will be presented as a file under `/var/openfaas/secrets/auth-token`. This can be read by `handler.py` to obtain the GitHub *Personal Access Token*.
@@ -59,6 +68,11 @@ functions:
       - auth-token
 
 ```
+
+> Note: If you're running on Kubernetes, suffix the `gateway_hostname` with `openfaas` namespace:
+> ```
+> gateway_hostname: "gateway.openfaas"
+> ```
 
 ### Update the `issue-bot` function
 

@@ -74,7 +74,7 @@ You can now test out the CLI, but first a note on alternate gateways URLs:
 
 If your gateway is not deployed at http://127.0.0.1:8080 then you will need to specify the alternative location. There are several ways to accomplish this:
 
-1. Set the environment variable `OPENFAAS_URL` and the `faas-cli` will point to that endpoint in your current shell session. For example: `export OPENFAAS_URL=http://openfaas.endpoint.com:8080`
+1. Set the environment variable `OPENFAAS_URL` and the `faas-cli` will point to that endpoint in your current shell session. For example: `export OPENFAAS_URL=http://openfaas.endpoint.com:8080`. You have already seen that if you deployed OpenFaaS on Kubernetes.
 2. Specify the correct endpoint inline with the `-g` or `--gateway` flag: `faas deploy --gateway http://openfaas.endpoint.com:8080`
 3. In your deployment YAML file, change the value specified by the `gateway:` object under `provider:`.
 
@@ -142,9 +142,34 @@ $ docker service create -d \
 stefanprodan/faas-grafana:4.6.3
 ```
 
+> Note: If you're running on Kubernetes, deploy Grafana with the following commands:
+>
+> Run Grafana in OpenFaaS Kubernetes namespace:
+> ```
+> kubectl -n openfaas run \
+> --image=stefanprodan/faas-grafana:4.6.3 \
+> --port=3000 \
+> grafana
+> ```
+>
+> Expose Grafana with a NodePort:
+> ```
+> kubectl -n openfaas expose deployment grafana \
+> --type=NodePort \
+> --name=grafana
+> ```
+>
+> Find Grafana node port address:
+> ```
+> $ GRAFANA_PORT=$(kubectl -n openfaas get svc grafana -o jsonpath="{.spec.ports[0].nodePort}")
+> $ GRAFANA_URL=http://$(minikube ip):$GRAFANA_PORT/dashboard/db/openfaas
+> ```
+
 After the service has been created open Grafana in your browser, login with username `admin` password `admin` and navigate to the pre-made OpenFaaS dashboard at:
 
 [http://127.0.0.1:3000/dashboard/db/openfaas](http://127.0.0.1:3000/dashboard/db/openfaas)
+
+> Note: For Kubernetes, use `$GRAFANA_URL` instead
 
 
 <a href="https://camo.githubusercontent.com/24915ac87ecf8a31285f273846e7a5ffe82eeceb/68747470733a2f2f7062732e7477696d672e636f6d2f6d656469612f4339636145364358554141585f36342e6a70673a6c61726765"><img src="https://camo.githubusercontent.com/24915ac87ecf8a31285f273846e7a5ffe82eeceb/68747470733a2f2f7062732e7477696d672e636f6d2f6d656469612f4339636145364358554141585f36342e6a70673a6c61726765" width="600px" /></a>

@@ -251,6 +251,14 @@ astronaut-finder.1.1e1ujtsijf6b@nuc    | 2018/02/21 14:53:25 Forking fprocess.
 astronaut-finder.1.1e1ujtsijf6b@nuc    | 2018/02/21 14:53:26 Wrote 18 Bytes - Duration: 0.063269 seconds
 ```
 
+> Note: If you're running on Kubernetes, check the logs with:
+> ```
+> $ POD=$( kubectl get pods  -n openfaas-fn -o go-template --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' | grep astronaut-finder)
+> $ kubectl logs $POD -n openfaas-fn
+> ```
+> As you're going to look into logs in the next labs as well, make sure you don't copy-paste, but grep for the proper function name (e.g. `astronaut-finder`)
+> and check the value of the `$POD` variable with `echo $POD`
+
 ## Troubleshooting: verbose output with `write_debug`
 
 Let's turn on verbose output for your function. This is turned-off by default so that we do not flood your function's logs with data - that is especially important when working with binary data which makes no sense in the logs.
